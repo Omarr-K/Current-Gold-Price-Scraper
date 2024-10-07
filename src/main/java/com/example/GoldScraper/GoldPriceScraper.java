@@ -6,6 +6,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
@@ -19,13 +20,29 @@ import java.util.regex.Pattern;
 
 public class GoldPriceScraper extends Application {
 
-    @FXML private Label Currentprice; // Current price of gold
-    @FXML private Label Uservalue; // Amount of gold user has in selected currency (After input)
-    @FXML private TextField UserAmount; // Amount of gold user has in grams (input)
-    @FXML private Button UserButton; // Button to calculate UserAmount
-    private double pricePerGramInAED; // Calculated UserAmount
+    @FXML
+    private Label Currentprice; // Current price of gold
+    @FXML
+    private Label Uservalue; // Amount of gold user has in selected currency (After input)
+    @FXML
+    private TextField UserAmount; // Amount of gold user has in grams (input)
+    @FXML
+    private Button UserButton; // Button to calculate UserAmount
+    @FXML
+    private ComboBox<String> CurrencyCombo; //Lets user pick currency
+    private double pricePerGramInAED; // Calculated UserAmount in AED
+    private double pricePerGramInCAD; // Calculated UserAmount in CAD
+    private double pricePerGramInUSD; // Calculated UserAmount in USD
+    private String userCurrency;
 
     public void initialize() {
+        CurrencyCombo.getItems().addAll("AED", "USD", "CAD"); // add currency options to the ComboBox
+        CurrencyCombo.setValue("AED");  // Set AED as the default selected currency
+        CurrencyCombo.setVisible(false);
+        CurrencyCombo.valueProperty().addListener((observable, oldValue, newValue) -> {
+            // Call displayValue method to update the price based on the new currency
+            updateDisplayedPrice();
+        });
         UserButton.setOnAction(event -> displayValue()); // Initialize action
     }
 
@@ -53,6 +70,7 @@ public class GoldPriceScraper extends Application {
         controller.fetchGoldPrice();  // Call the method after FXML is initialized
     }
 
+    // Method to fetch gold price from the website
     // Method to fetch gold price from the website
     public void fetchGoldPrice() throws IOException {
         // Start a new thread to fetch the gold price in the background to avoid blocking the UI
@@ -102,15 +120,20 @@ public class GoldPriceScraper extends Application {
                         String cleanedPrice = priceStr.replace(",", "");
 
                         // Convert the cleaned price string to a double
-                        double price = Double.parseDouble(cleanedPrice);
+                        double pricePerOunceInUSD = Double.parseDouble(cleanedPrice);
+                        pricePerGramInAED = (pricePerOunceInUSD * 3.67) / 31.1034768;
+                        pricePerGramInCAD = (pricePerOunceInUSD * 1.36) / 31.1034768;
+                        pricePerGramInUSD = pricePerOunceInUSD / 31.1034768;
 
-                        // Convert the price to grams and AED
-                        pricePerGramInAED = (price * 3.67) / 31.1034768;
+                        // Get the selected currency from the ComboBox
+                        String selectedCurrency = CurrencyCombo.getValue();
 
-                        // Update the Currentprice label with the gold price in AED (UI updates must be done on the UI thread)
+                        // Update the Currentprice label with the gold price in the selected currency
                         Platform.runLater(() -> {
-                            Currentprice.setText(String.format("Current Price of Gold per Gram in AED: %.2f", pricePerGramInAED));
+                            Currentprice.setText(String.format("Current Price of Gold per Gram: %.2f", pricePerGramInAED));
+                            CurrencyCombo.setVisible(true);
                         });
+
                         break; // Exit the loop once the price is found and processed
                     }
                 }
@@ -118,11 +141,45 @@ public class GoldPriceScraper extends Application {
         }).start(); // Start the background thread
     }
 
-    @FXML private void displayValue() {
-        // Get the number of grams input by the user from the TextField (UserAmount)
-        // Convert the string value to a double for calculations
-        double userGrams = Double.parseDouble(UserAmount.getText());
-        Uservalue.setText(String.format("You have AED %.2f in gold", userGrams*pricePerGramInAED)); //Display value
+    private void updateDisplayedPrice() {
+        // Get the selected currency from the ComboBox
+        String selectedCurrency = CurrencyCombo.getValue();
+
+        // Update the Currentprice label based on the selected currency
+        Platform.runLater(() -> {
+            switch (selectedCurrency) {
+                case "AED":
+                    Currentprice.setText(String.format("Current Price of Gold per Gram: %.2f", pricePerGramInAED));
+                    break;
+                case "USD":
+                    Currentprice.setText(String.format("Current Price of Gold per Gram: %.2f", pricePerGramInUSD));
+                    break;
+                case "CAD":
+                    Currentprice.setText(String.format("Current Price of Gold per Gram: %.2f", pricePerGramInCAD));
+                    break;
+                default:
+                    Currentprice.setText("Error: Invalid currency selected!");
+            }
+        });
     }
 
+    @FXML
+    private void displayValue() {
+        // Get the user input for the amount of gold in grams
+        double userGrams = Double.parseDouble(UserAmount.getText());
+
+        // Get the selected currency from the ComboBox
+        String selectedCurrency = CurrencyCombo.getValue();
+
+        // Calculate and display the value based on the selected currency
+        Platform.runLater(() -> {
+            if (selectedCurrency.equals("AED")) {
+                Uservalue.setText(String.format("You have AED %.2f in Gold", userGrams * pricePerGramInAED));
+            } else if (selectedCurrency.equals("USD")) {
+                Uservalue.setText(String.format("You have USD %.2f in Gold", userGrams * (pricePerGramInUSD))); // USD equivalent
+            } else if (selectedCurrency.equals("CAD")) {
+                Uservalue.setText(String.format("You have CAD %.2f in Gold", userGrams * (pricePerGramInCAD))); // CAD equivalent
+            }
+        });
+    }
 }

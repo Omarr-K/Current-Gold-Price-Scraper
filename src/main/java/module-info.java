@@ -1,4 +1,4 @@
-module com.example.GoldScraper {
+module com.example.selflearning {
     requires javafx.controls;
     requires javafx.fxml;
     requires org.jsoup;
