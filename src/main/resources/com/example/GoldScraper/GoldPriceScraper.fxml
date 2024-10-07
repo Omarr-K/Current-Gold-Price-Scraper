@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.Cursor?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.shape.Line?>
+<?import javafx.scene.text.Font?>
+
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.GoldScraper.GoldPriceScraper">
+    <children>
+        <Label fx:id="Title" contentDisplay="CENTER" layoutX="103.0" layoutY="2.0" prefHeight="56.0" prefWidth="409.0" text="Omar's Gold Exchange">
+            <font>
+                <Font name="Sinhala Sangam MN Bold" size="41.0" />
+            </font>
+        </Label>
+        <Label fx:id="Currentprice" alignment="CENTER" layoutX="7.0" layoutY="71.0" prefHeight="56.0" prefWidth="600.0" text="Current Price of Gold per Gram in AED:  loading..." textOverrun="CLIP">
+            <font>
+                <Font name="System Bold" size="28.0" />
+            </font>
+            <cursor>
+                <Cursor fx:constant="NONE" />
+            </cursor>
+        </Label>
+        <Label fx:id="title2" alignment="CENTER" layoutX="-1.0" layoutY="126.0" prefHeight="56.0" prefWidth="606.0" text="Check How Much Your Total Stock is worth Below:">
+            <font>
+                <Font name="Symbol" size="23.0" />
+            </font>
+        </Label>
+        <Label fx:id="question" layoutX="12.0" layoutY="171.0" prefHeight="94.0" prefWidth="263.0" text="How many grams of gold are you currently holding?" textOverrun="CLIP" wrapText="true">
+            <font>
+                <Font name="Symbol" size="23.0" />
+            </font>
+        </Label>
+        <TextField fx:id="UserAmount" alignment="CENTER" layoutX="307.0" layoutY="196.0" prefHeight="44.0" prefWidth="241.0" text="Enter Amount in Grams">
+            <font>
+                <Font size="19.0" />
+            </font>
+        </TextField>
+        <Button fx:id="UserButton" layoutX="378.0" layoutY="253.0" onAction="#displayValue" text="Calculate Value" />
+        <Label fx:id="Uservalue" alignment="CENTER" layoutX="3.0" layoutY="284.0" prefHeight="56.0" prefWidth="557.0" text="You Have ____  in Gold" textOverrun="CENTER_WORD_ELLIPSIS">
+            <font>
+                <Font name="System Bold" size="32.0" />
+            </font>
+        </Label>
+
+        <!-- Corrected first ImageView -->
+        <ImageView fitHeight="41.0" fitWidth="92.0" layoutX="505.0" layoutY="14.0" pickOnBounds="true" preserveRatio="true">
+            <image>
+                <Image url="@../../../Images/gold.png" />
+            </image>
+        </ImageView>
+
+        <!-- Corrected second ImageView -->
+        <ImageView fitHeight="41.0" fitWidth="92.0" layoutX="37.0" layoutY="10.0" nodeOrientation="RIGHT_TO_LEFT" pickOnBounds="true" preserveRatio="true">
+            <image>
+                <Image url="@../../../Images/gold.png" />
+            </image>
+        </ImageView>
+        <Label alignment="CENTER" layoutX="91.0" layoutY="377.0" prefHeight="19.0" prefWidth="436.0" text="Prices generated from www.cnbc.com ">
+            <font>
+                <Font size="17.0" />
+            </font>
+        </Label>
+        <Line endX="496.75030517578125" layoutX="103.0" layoutY="127.0" startX="-100.0" />
+    </children>
+</Pane>
