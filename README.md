@@ -1,5 +1,6 @@
 Gold Price Scraper - Omar's Gold Exchange
 Overview
+
 My family recently began investing in gold, sparking my interest in creating a simple tool to help track the real-time value of gold and determine how much their investment is worth based on current rates. I developed Omar's Gold Exchange using JavaFX and SceneBuilder, which provides a live feed of gold prices and allows the user to calculate the value of their holdings in various currencies.
 
 Project Description
