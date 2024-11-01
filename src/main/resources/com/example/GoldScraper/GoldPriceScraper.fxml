@@ -61,15 +61,17 @@
                 <Image url="@../../../Images/gold.png" />
             </image>
         </ImageView>
-        <Label alignment="CENTER" layoutX="166.0" layoutY="375.0" prefHeight="22.0" prefWidth="282.0" text="Prices generated from www.cnbc.com ">
+        <Label alignment="CENTER" layoutX="1.0" layoutY="375.0" prefHeight="22.0" prefWidth="598.0" text="Prices generated from www.cnbc.com and www.dubaicityofgold.com">
             <font>
                 <Font size="17.0" />
             </font>
         </Label>
         <Line endX="496.75030517578125" layoutX="103.0" layoutY="127.0" startX="-100.0" />
         <ComboBox fx:id="CurrencyCombo" layoutX="491.0" layoutY="78.0" prefHeight="44.0" prefWidth="93.0" promptText="AED" />
+      <Label fx:id="LastUpdatedLabel" layoutX="150.0" layoutY="63.0" prefHeight="17.0" prefWidth="280.0">
+         <font>
+            <Font size="15.0" />
+         </font>
+      </Label>
     </children>
 </AnchorPane>
-
-
-

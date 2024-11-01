@@ -15,6 +15,12 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,9 +36,13 @@ public class GoldPriceScraper extends Application {
     private Button UserButton; // Button to calculate UserAmount
     @FXML
     private ComboBox<String> CurrencyCombo; //Lets user pick currency
+    @FXML
+    private Label LastUpdatedLabel; // Label for last updated time
     private double pricePerGramInAED; // Calculated UserAmount in AED
     private double pricePerGramInCAD; // Calculated UserAmount in CAD
     private double pricePerGramInUSD; // Calculated UserAmount in USD
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1); // Scheduler for periodic refresh
+
     private String userCurrency;
 
     public void initialize() {
@@ -44,6 +54,14 @@ public class GoldPriceScraper extends Application {
             updateDisplayedPrice();
         });
         UserButton.setOnAction(event -> displayValue()); // Initialize action
+        UserButton.setOnAction(event -> displayValue()); // Initialize action
+        scheduler.scheduleAtFixedRate(() -> {
+            try {
+                fetchGoldPrice();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }, 0, 5, TimeUnit.MINUTES);
     }
 
     private void parsevalues() {
@@ -75,69 +93,94 @@ public class GoldPriceScraper extends Application {
     public void fetchGoldPrice() throws IOException {
         // Start a new thread to fetch the gold price in the background to avoid blocking the UI
         new Thread(() -> {
-            // URL of the source page where the gold price is being fetched from
-            String url = "https://www.cnbc.com/quotes/XAU=";
+            // URL for USD gold price, AED gold price, and conversion rate
+            String urlUSD = "https://www.cnbc.com/quotes/XAU=";
+            String urlAED = "https://dubaicityofgold.com/";
+            String urlUSDToCAD = "https://www.xe.com/currencyconverter/convert/?Amount=1&From=USD&To=CAD";
 
-            Document doc = null; // Initialize Document to hold the parsed HTML content
+            Document docUSD = null;
+            Document docAED = null;
+            Document docConversion = null;
 
+            // Fetch the USD gold price
             try {
-                // Fetch the web page and return the HTML document using Jsoup
-                doc = Jsoup.connect(url)
-                        // Set a User-Agent header to simulate a browser request (safety first)
+                docUSD = Jsoup.connect(urlUSD)
                         .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36")
                         .get();
             } catch (IOException e) {
-                // If there's an issue fetching the page, print the error stack trace
                 e.printStackTrace();
             }
 
-            // Check if the document is null, which means the fetch failed
-            if (doc == null) {
-                // Update the UI to notify the user of the error (must be done on the UI thread)
-                Platform.runLater(() -> Currentprice.setText("Error fetching price!"));
-                return; // Exit the method early since fetching failed
+            // Fetch the AED gold price
+            try {
+                docAED = Jsoup.connect(urlAED)
+                        .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36")
+                        .get();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
 
-            // Get all <script> tags from the HTML document
-            Elements scriptTags = doc.getElementsByTag("script");
+            // Fetch the USD to CAD conversion rate
+            try {
+                docConversion = Jsoup.connect(urlUSDToCAD)
+                        .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36")
+                        .get();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
-            // Define a regex pattern to find the "price":"some-value" in the script content
+            // Parse the USD gold price from the fetched document
+            Elements scriptTags = docUSD.getElementsByTag("script");
             Pattern pricePattern = Pattern.compile("\"price\":\"([\\d,\\.]+)\"");
-
-            // Loop through each <script> tag to find the one containing the gold price
             for (Element script : scriptTags) {
-                // If the script contains the word "price", proceed to extract the value
                 if (script.data().contains("price")) {
-                    // Apply the regex pattern to the script's content
                     Matcher matcher = pricePattern.matcher(script.data());
-
-                    // If a match is found for the price pattern
                     if (matcher.find()) {
-                        // Extract the matched price string (group 1 of the regex)
-                        String priceStr = matcher.group(1);
-
-                        // Clean the price by removing commas (if any)
-                        String cleanedPrice = priceStr.replace(",", "");
-
-                        // Convert the cleaned price string to a double
-                        double pricePerOunceInUSD = Double.parseDouble(cleanedPrice);
-                        pricePerGramInAED = (pricePerOunceInUSD * 3.67) / 31.1034768;
-                        pricePerGramInCAD = (pricePerOunceInUSD * 1.36) / 31.1034768;
-                        pricePerGramInUSD = pricePerOunceInUSD / 31.1034768;
-
-                        // Get the selected currency from the ComboBox
-                        String selectedCurrency = CurrencyCombo.getValue();
-
-                        // Update the Currentprice label with the gold price in the selected currency
-                        Platform.runLater(() -> {
-                            Currentprice.setText(String.format("Current Price of Gold per Gram: %.2f", pricePerGramInAED));
-                            CurrencyCombo.setVisible(true);
-                        });
-
-                        break; // Exit the loop once the price is found and processed
+                        String priceStr = matcher.group(1).replace(",", "");
+                        double pricePerOunceInUSD = Double.parseDouble(priceStr);
+                        pricePerGramInUSD = pricePerOunceInUSD / 31.1034768; // Convert to grams
+                        break; // Exit the loop once the price is found
                     }
                 }
             }
+
+            // Parse the AED gold price from the second website
+            Elements priceElementsAED = docAED.select("ul.goldtable li");
+            for (Element element : priceElementsAED) {
+                if (element.text().contains("24K")) {
+                    Pattern patternAED = Pattern.compile("AED\\s*(\\d+\\.\\d+)");
+                    Matcher matcherAED = patternAED.matcher(element.text());
+                    if (matcherAED.find()) {
+                        String priceStrAED = matcherAED.group(1);
+                        double pricePerGramInAEDFromSite = Double.parseDouble(priceStrAED);
+                        pricePerGramInAED = pricePerGramInAEDFromSite;
+                        break; // Exit the loop once the AED price is found
+                    }
+                }
+            }
+
+            // Parse the USD to CAD conversion rate
+            Elements conversionElements = docConversion.select("p.sc-423c2a5f-1.gPUWGS");
+
+// Extract the conversion rate text and clean it
+            String conversionRateStr = conversionElements.first().text().replaceAll("[^\\d.]", "");
+
+// Convert the cleaned string to a double
+            double conversionRate = Double.parseDouble(conversionRateStr);
+
+// Calculate the price in CAD
+            pricePerGramInCAD = pricePerGramInUSD * conversionRate;
+
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm a z");
+            dateFormat.setTimeZone(TimeZone.getDefault()); // Set to the local timezone
+            String lastUpdatedTime = dateFormat.format(new Date());
+
+            // Update the UI with the fetched prices
+            Platform.runLater(() -> {
+                updateDisplayedPrice();
+                LastUpdatedLabel.setText("Last Updated: " + lastUpdatedTime);
+                CurrencyCombo.setVisible(true);
+            });
         }).start(); // Start the background thread
     }
 
