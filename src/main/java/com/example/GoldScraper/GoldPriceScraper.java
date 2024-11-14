@@ -104,27 +104,21 @@ public class GoldPriceScraper extends Application {
 
             // Fetch the USD gold price
             try {
-                docUSD = Jsoup.connect(urlUSD)
-                        .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36")
-                        .get();
+                docUSD = Jsoup.connect(urlUSD).header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36").get();
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
             // Fetch the AED gold price
             try {
-                docAED = Jsoup.connect(urlAED)
-                        .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36")
-                        .get();
+                docAED = Jsoup.connect(urlAED).header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36").get();
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
             // Fetch the USD to CAD conversion rate
             try {
-                docConversion = Jsoup.connect(urlUSDToCAD)
-                        .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36")
-                        .get();
+                docConversion = Jsoup.connect(urlUSDToCAD).header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36").get();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -160,7 +154,7 @@ public class GoldPriceScraper extends Application {
             }
 
             // Parse the USD to CAD conversion rate
-            Elements conversionElements = docConversion.select("p.sc-423c2a5f-1.gPUWGS");
+            Elements conversionElements = docConversion.select("p.sc-63d8b7e3-1.bMdPIi");
 
 // Extract the conversion rate text and clean it
             String conversionRateStr = conversionElements.first().text().replaceAll("[^\\d.]", "");
